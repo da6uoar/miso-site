@@ -2,7 +2,7 @@
 #   assets/miso.js  : 프로그램 (아임웹 페이지 안의 독립 공간(Shadow DOM)에 사이트를 그림)
 #   assets/miso.css : 스타일 (독립 공간 안에만 적용돼 아임웹 디자인과 충돌하지 않음)
 # 사용법: python3 tools/build_imweb.py   (miso-site 폴더에서 실행)
-import re, pathlib
+import re, pathlib, hashlib
 
 BASE = 'https://da6uoar.github.io/miso-site/'
 root = pathlib.Path(__file__).resolve().parent.parent
@@ -39,7 +39,7 @@ prelude = (
     '__misoRoot=sr;'
     'if(!document.getElementById("miso-font")){var f=document.createElement("link");f.id="miso-font";f.rel="stylesheet";'
     'f.href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css";document.head.appendChild(f);}'
-    'var l=document.createElement("link");l.rel="stylesheet";l.href="' + BASE + 'assets/miso.css";sr.appendChild(l);'
+    'var l=document.createElement("link");l.rel="stylesheet";l.href="' + BASE + 'assets/miso.css?v=__CSSV__";sr.appendChild(l);'
     'var m=document.createElement("div");m.className="miso-app";sr.appendChild(m);'
     'return m;}'
 )
@@ -54,6 +54,7 @@ css = re.sub(r'(?<![\w-])body\{', ':host{', css)
 css = ':host{display:block;all:initial;display:block}' + css
 
 (root / 'assets').mkdir(exist_ok=True)
+out_js = out_js.replace('__CSSV__', hashlib.md5(css.encode('utf-8')).hexdigest()[:8])
 (root / 'assets' / 'miso.js').write_text(out_js, encoding='utf-8')
 (root / 'assets' / 'miso.css').write_text(css, encoding='utf-8')
 print('miso.js', len(out_js), 'miso.css', len(css))
